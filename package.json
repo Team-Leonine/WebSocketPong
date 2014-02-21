@@ -1,0 +1,14 @@
+{
+  "scripts": {
+    "start": "node server.js"
+  },
+  "version": "0.0.0-1",
+  "engines": {
+    "node": "0.10.x"
+  },
+  "name": "WebSocketPong",
+  "subdomain": "websocket-pong",
+  "dependencies": {
+    "send": "*"
+  }
+}
