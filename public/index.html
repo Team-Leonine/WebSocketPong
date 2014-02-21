@@ -2,8 +2,9 @@
 <html lang="en"> 
 <head> 
 	<meta charset="UTF-8" />
-	<title>Phaser - Getting started</title>
+	<title>Web Socket Pong</title>
 	<script type="text/javascript" src="../js/phaser.min.js"></script>
+    <script type="text/javascript" src="/socket.io/socket.io.js"></script>
     <style type="text/css">
         body {
             margin: 0;
@@ -20,12 +21,16 @@ function preload() {
 
 }
 
+var PADDLE_HEIGHT = 100;
+
 var playerPaddle;
 var scoreText;
 var cursors;
-var PADDLE_HEIGHT = 100;
+var socket;
 
 function create() {
+    socket = io.connect('http://websocket-pong.nodejitsu.com');
+
     playerPaddle = game.add.graphics(50, 250);
     playerPaddle.beginFill(0x00ff00, 1);
     playerPaddle.drawRect(0, 0, 25, PADDLE_HEIGHT);
@@ -38,10 +43,12 @@ function update() {
     if (cursors.up.isDown)
     {
         playerPaddle.y -= 10;
+        socket.emit('upPressed');
     }
     else if (cursors.down.isDown)
     {
         playerPaddle.y += 10;
+        socket.emit('downPressed');
     }
 
     if (playerPaddle.y + PADDLE_HEIGHT > game.world.height) {

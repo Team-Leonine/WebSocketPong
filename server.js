@@ -21,3 +21,17 @@ var app = http.createServer(function(req, res) {
     .on('directory', redirect)
     .pipe(res);
 }).listen(3000);
+
+var io = require('socket.io').listen(app);
+
+io.sockets.on('connection', function(socket) {
+  console.log("Connection established!");
+  socket.on('upPressed', function(socket) {
+    console.log("Player pressed up key.");
+  });
+  socket.on('downPressed', function(socket) {
+    console.log("Player pressed down key.");
+  });
+});
+
+
