@@ -1,0 +1,57 @@
+<!doctype html> 
+<html lang="en"> 
+<head> 
+	<meta charset="UTF-8" />
+	<title>Phaser - Getting started</title>
+	<script type="text/javascript" src="js/phaser.min.js"></script>
+    <style type="text/css">
+        body {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+
+<script type="text/javascript">
+
+var game = new Phaser.Game(800, 600, Phaser.AUTO, '', { preload: preload, create: create, update: update });
+
+function preload() {
+
+}
+
+var playerPaddle;
+var scoreText;
+var cursors;
+var PADDLE_HEIGHT = 100;
+
+function create() {
+    playerPaddle = game.add.graphics(50, 250);
+    playerPaddle.beginFill(0x00ff00, 1);
+    playerPaddle.drawRect(0, 0, 25, PADDLE_HEIGHT);
+
+    //  Our controls.
+    cursors = game.input.keyboard.createCursorKeys();
+}
+
+function update() {
+    if (cursors.up.isDown)
+    {
+        playerPaddle.y -= 10;
+    }
+    else if (cursors.down.isDown)
+    {
+        playerPaddle.y += 10;
+    }
+
+    if (playerPaddle.y + PADDLE_HEIGHT > game.world.height) {
+        playerPaddle.y = game.world.height - PADDLE_HEIGHT;
+    }
+    else if (playerPaddle.y < 0) {
+        playerPaddle.y = 0;
+    }
+}
+</script>
+
+</body>
+</html>
