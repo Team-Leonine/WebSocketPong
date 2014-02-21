@@ -24,14 +24,38 @@ var app = http.createServer(function(req, res) {
 
 var io = require('socket.io').listen(app);
 
+var PADDLE_HEIGHT = 100;
+var GAME_HEIGHT = 600;
+var PADDLE_START_Y = 250;
+
+var paddleY = PADDLE_START_Y;
+
+
 io.sockets.on('connection', function(socket) {
   console.log("Connection established!");
-  socket.on('upPressed', function(socket) {
-    console.log("Player pressed up key.");
+
+  socket.on('keyPressed', function(data) {
+    console.log("Player pressed " + data + " key.");
+
+    if (data === "up") {
+      paddleY -= 10;
+    }
+    else if (data === "down") {
+      paddleY += 10;
+    }
+
+    checkBounds();
+    socket.emit('positionUpdate', paddleY);
   });
-  socket.on('downPressed', function(socket) {
-    console.log("Player pressed down key.");
-  });
+
+  function checkBounds() {
+    if (paddleY + PADDLE_HEIGHT > GAME_HEIGHT) {
+      paddleY = GAME_HEIGHT - PADDLE_HEIGHT;
+    }
+    else if (paddleY < 0) {
+      paddleY = 0;
+    }
+  };
 });
 
 

@@ -31,6 +31,10 @@ var socket;
 function create() {
     socket = io.connect('http://websocket-pong.nodejitsu.com');
 
+    socket.on('positionUpdate', function(data) {
+        console.log("Received position update: " + data);
+        playerPaddle.y = data; 
+    });
     playerPaddle = game.add.graphics(50, 250);
     playerPaddle.beginFill(0x00ff00, 1);
     playerPaddle.drawRect(0, 0, 25, PADDLE_HEIGHT);
@@ -42,22 +46,14 @@ function create() {
 function update() {
     if (cursors.up.isDown)
     {
-        playerPaddle.y -= 10;
-        socket.emit('upPressed');
+        socket.emit('keyPressed', "up");
     }
     else if (cursors.down.isDown)
     {
-        playerPaddle.y += 10;
-        socket.emit('downPressed');
-    }
-
-    if (playerPaddle.y + PADDLE_HEIGHT > game.world.height) {
-        playerPaddle.y = game.world.height - PADDLE_HEIGHT;
-    }
-    else if (playerPaddle.y < 0) {
-        playerPaddle.y = 0;
+        socket.emit('keyPressed', "down");
     }
 }
+
 </script>
 
 </body>
