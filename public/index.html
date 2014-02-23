@@ -3,7 +3,8 @@
 <head> 
   <meta charset="UTF-8" />
   <title>Web Socket Pong</title>
-  <script type="text/javascript" src="../js/phaser.min.js"></script>
+  <script type="text/javascript" src="js/phaser.min.js"></script>
+  <script type="text/javascript" src="js/constants.js"></script>
   <script type="text/javascript" src="/socket.io/socket.io.js"></script>
   <style type="text/css">
     body {
@@ -22,10 +23,6 @@ function preload() {
 
 }
 
-var PADDLE_HEIGHT = 100;
-var PADDLE_WIDTH = 25;
-var PADDLE_START_Y = 250;
-
 var paddles = [];
 var scoreText;
 var cursors;
@@ -35,9 +32,9 @@ var clientID;
 var ready = false;
 
 function createPaddle(x) {
-  paddle = game.add.graphics(x, PADDLE_START_Y);
+  paddle = game.add.graphics(x, constants.PADDLE_START_Y);
   paddle.beginFill(0x00ff00, 1);
-  paddle.drawRect(0, 0, PADDLE_WIDTH, PADDLE_HEIGHT);
+  paddle.drawRect(0, 0, constants.PADDLE_WIDTH, constants.PADDLE_HEIGHT);
 
   return paddle;
 }
@@ -56,49 +53,31 @@ function create() {
   });
 
   paddles[0] = createPaddle(50);
-  paddles[1] = createPaddle(game.width - 50 - PADDLE_WIDTH);
+  paddles[1] = createPaddle(game.width - 50 - constants.PADDLE_WIDTH);
 
   //  Our controls.
   cursors = game.input.keyboard.createCursorKeys();
 }
 
-
-var DirectionEnum = Object.freeze({
-  UP: "up",
-  DOWN: "down",
-  IDLE: "idle"
-});
-
-// Paddle move speed in pixels/millisecond
-var PADDLE_MOVE_SPEED = 600 / 1000;
-// The duration of a single move in milliseconds
-var MOVE_DURATION = 10;
-// Estimated average frames per second
-var FRAMES_PER_SECOND = 60;
-// Frames per move duration
-var FRAMES_PER_MOVE = Math.ceil(MOVE_DURATION / FRAMES_PER_SECOND);
-// Distance traveled by the paddle in one move
-var MOVE_DISTANCE = PADDLE_MOVE_SPEED * MOVE_DURATION;
-var DISTANCE_PER_FRAME = MOVE_DISTANCE / FRAMES_PER_MOVE;
-var moveDirection = DirectionEnum.IDLE;
+var moveDirection = constants.DirectionEnum.IDLE;
 var moveStart;
 var moveDestination;
 
 function movePaddle(paddle, distance, direction, destination) {
-  if (direction == DirectionEnum.IDLE) {
+  if (direction == constants.DirectionEnum.IDLE) {
     throw "direction cannot be IDLE in movePaddle()!";
   }
 
   // If we're already there, change the state to indicate we are no longer
   // moving.
   if (paddle.y == destination) {
-    moveDirection = DirectionEnum.IDLE;
+    moveDirection = constants.DirectionEnum.IDLE;
     return;
   }
-  if (direction == DirectionEnum.UP) {
+  if (direction == constants.DirectionEnum.UP) {
     paddle.y -= distance;
   }
-  else if (direction == DirectionEnum.DOWN) {
+  else if (direction == constants.DirectionEnum.DOWN) {
     paddle.y += distance;
   }
 
@@ -106,11 +85,11 @@ function movePaddle(paddle, distance, direction, destination) {
   // moving.
   if (paddle.y < 0) {
     paddle.y = 0;
-    moveDirection = DirectionEnum.IDLE;
+    moveDirection = constants.DirectionEnum.IDLE;
   }
-  else if (paddle.y + PADDLE_HEIGHT > game.height) {
-    paddle.y = game.height - PADDLE_HEIGHT;
-    moveDirection = DirectionEnum.IDLE;
+  else if (paddle.y + constants.PADDLE_HEIGHT > game.height) {
+    paddle.y = game.height - constants.PADDLE_HEIGHT;
+    moveDirection = constants.DirectionEnum.IDLE;
   }
 }
 
@@ -120,25 +99,25 @@ function update() {
 
   console.log(moveDirection);
   // If we are not moving the player's paddle
-  if (moveDirection == DirectionEnum.IDLE) {
+  if (moveDirection == constants.DirectionEnum.IDLE) {
     
     moveStart = paddles[clientID].y;
     if (cursors.up.isDown) {
-      moveDirection = DirectionEnum.UP;
-      moveDestination = moveStart - MOVE_DISTANCE;
-      movePaddle(paddles[clientID], DISTANCE_PER_FRAME, DirectionEnum.UP, moveDestination);
+      moveDirection = constants.DirectionEnum.UP;
+      moveDestination = moveStart - constants.MOVE_DISTANCE;
+      movePaddle(paddles[clientID], constants.DISTANCE_PER_FRAME, constants.DirectionEnum.UP, moveDestination);
     }
     else if(cursors.down.isDown) {
-      moveDirection = DirectionEnum.DOWN;
-      moveDestination = moveStart + MOVE_DISTANCE;
-      movePaddle(paddles[clientID], DISTANCE_PER_FRAME, DirectionEnum.DOWN, moveDestination);
+      moveDirection = constants.DirectionEnum.DOWN;
+      moveDestination = moveStart + constants.MOVE_DISTANCE;
+      movePaddle(paddles[clientID], constants.DISTANCE_PER_FRAME, constants.DirectionEnum.DOWN, moveDestination);
     }
 
     //socket.emit('move', {'position': paddles[0].y, 'direction': moveDirection});
   }
   // If we are in the process of moving the player's paddle
   else {
-    movePaddle(paddles[clientID], DISTANCE_PER_FRAME, moveDirection, moveDestination);
+    movePaddle(paddles[clientID], constants.DISTANCE_PER_FRAME, moveDirection, moveDestination);
   }
 }
 
