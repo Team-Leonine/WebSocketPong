@@ -10,6 +10,7 @@
   "subdomain": "websocket-pong",
   "dependencies": {
     "send": "*",
-    "socket.io": "*"
+    "socket.io": "*",
+    "underscore": "*"
   }
 }

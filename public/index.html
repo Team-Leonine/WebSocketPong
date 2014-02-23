@@ -16,7 +16,7 @@
 
 <script type="text/javascript">
 
-var game = new Phaser.Game(800, 600, Phaser.AUTO, '', { preload: preload, create: create, update: update });
+var game = new Phaser.Game(constants.GAME_WIDTH, constants.GAME_HEIGHT, Phaser.AUTO, '', { preload: preload, create: create, update: update });
 
 
 function preload() {
@@ -30,6 +30,8 @@ var socket;
 
 var clientID;
 var ready = false;
+
+var snapshots = [];
 
 function createPaddle(x) {
   paddle = game.add.graphics(x, constants.PADDLE_START_Y);
@@ -50,6 +52,19 @@ function create() {
   socket.on('ready', function(data) {
     ready = true;
     console.log("Two players connected. Game is ready!");
+  });
+
+  socket.on('snapshot', function(data) {
+    // Snapshots are only sent after ready is set to true.
+    if (!ready)
+      throw "Snapshots sent before ready state"
+
+    paddles[data.id].y = data.position;
+
+    /*snapshots.push(data);
+    if (snapshots.length > 1) {
+      entityInterpolation(paddles[data.id], snapshots);
+    }*/
   });
 
   paddles[0] = createPaddle(50);
@@ -93,11 +108,14 @@ function movePaddle(paddle, distance, direction, destination) {
   }
 }
 
+function entityInterpolation(paddle, snapshots) {
+  
+}
+
 function update() {
   if (!ready)
     return;
 
-  console.log(moveDirection);
   // If we are not moving the player's paddle
   if (moveDirection == constants.DirectionEnum.IDLE) {
     
@@ -113,7 +131,9 @@ function update() {
       movePaddle(paddles[clientID], constants.DISTANCE_PER_FRAME, constants.DirectionEnum.DOWN, moveDestination);
     }
 
-    //socket.emit('move', {'position': paddles[0].y, 'direction': moveDirection});
+    // If we started moving, send a message to the server.
+    if (moveDirection != constants.DirectionEnum.IDLE)
+      socket.emit('move', {'id': clientID, 'position': moveStart, 'direction': moveDirection});
   }
   // If we are in the process of moving the player's paddle
   else {
