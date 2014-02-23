@@ -37,6 +37,7 @@ function createPaddle(x) {
   paddle = game.add.graphics(x, constants.PADDLE_START_Y);
   paddle.beginFill(0x00ff00, 1);
   paddle.drawRect(0, 0, constants.PADDLE_WIDTH, constants.PADDLE_HEIGHT);
+  paddle.moveDirection = constants.DirectionEnum.IDLE;
 
   return paddle;
 }
@@ -59,12 +60,10 @@ function create() {
     if (!ready)
       throw "Snapshots sent before ready state"
 
-    paddles[data.id].y = data.position;
-
-    /*snapshots.push(data);
+    snapshots.push(data);
     if (snapshots.length > 1) {
       entityInterpolation(paddles[data.id], snapshots);
-    }*/
+    }
   });
 
   paddles[0] = createPaddle(50);
@@ -74,25 +73,21 @@ function create() {
   cursors = game.input.keyboard.createCursorKeys();
 }
 
-var moveDirection = constants.DirectionEnum.IDLE;
-var moveStart;
-var moveDestination;
-
-function movePaddle(paddle, distance, direction, destination) {
-  if (direction == constants.DirectionEnum.IDLE) {
+function movePaddle(paddle, distance) {
+  if (paddle.moveDirection == constants.DirectionEnum.IDLE) {
     throw "direction cannot be IDLE in movePaddle()!";
   }
 
   // If we're already there, change the state to indicate we are no longer
   // moving.
-  if (paddle.y == destination) {
-    moveDirection = constants.DirectionEnum.IDLE;
+  if (paddle.y == paddle.moveDestination) {
+    paddle.moveDirection = constants.DirectionEnum.IDLE;
     return;
   }
-  if (direction == constants.DirectionEnum.UP) {
+  if (paddle.moveDirection == constants.DirectionEnum.UP) {
     paddle.y -= distance;
   }
-  else if (direction == constants.DirectionEnum.DOWN) {
+  else if (paddle.moveDirection == constants.DirectionEnum.DOWN) {
     paddle.y += distance;
   }
 
@@ -100,44 +95,60 @@ function movePaddle(paddle, distance, direction, destination) {
   // moving.
   if (paddle.y < 0) {
     paddle.y = 0;
-    moveDirection = constants.DirectionEnum.IDLE;
+    paddle.moveDirection = constants.DirectionEnum.IDLE;
   }
   else if (paddle.y + constants.PADDLE_HEIGHT > game.height) {
     paddle.y = game.height - constants.PADDLE_HEIGHT;
-    moveDirection = constants.DirectionEnum.IDLE;
+    paddle.moveDirection = constants.DirectionEnum.IDLE;
   }
 }
 
 function entityInterpolation(paddle, snapshots) {
-  
+  // No movement between snapshots, so don't bother moving the paddle
+  if (snapshots[0].position == snapshots[1].position) {
+    paddle.moveDirection = constants.DirectionEnum.IDLE;
+    snapshots.shift();
+    return;
+  }
+
+  paddle.moveDirection = snapshots[0].position - snapshots[1].position < 0 ? constants.DirectionEnum.DOWN : constants.DirectionEnum.UP; 
+  paddle.moveStart = snapshots[0].position;
+  paddle.moveDestination = snapshots[1].position;
+  snapshots.shift();
 }
 
 function update() {
   if (!ready)
     return;
 
+  var paddle = paddles[clientID];
+  var otherPaddle = clientID == 0 ? paddles[1] : paddles[0];
+
   // If we are not moving the player's paddle
-  if (moveDirection == constants.DirectionEnum.IDLE) {
+  if (paddle.moveDirection == constants.DirectionEnum.IDLE) {
     
-    moveStart = paddles[clientID].y;
+    paddle.moveStart = paddle.y;
     if (cursors.up.isDown) {
-      moveDirection = constants.DirectionEnum.UP;
-      moveDestination = moveStart - constants.MOVE_DISTANCE;
-      movePaddle(paddles[clientID], constants.DISTANCE_PER_FRAME, constants.DirectionEnum.UP, moveDestination);
+      paddle.moveDirection = constants.DirectionEnum.UP;
+      paddle.moveDestination = paddle.moveStart - constants.MOVE_DISTANCE;
+      socket.emit('move', {'id': clientID, 'position': paddle.moveStart, 'direction': paddle.moveDirection});
+      movePaddle(paddle, constants.DISTANCE_PER_FRAME, constants.DirectionEnum.UP); 
     }
     else if(cursors.down.isDown) {
-      moveDirection = constants.DirectionEnum.DOWN;
-      moveDestination = moveStart + constants.MOVE_DISTANCE;
-      movePaddle(paddles[clientID], constants.DISTANCE_PER_FRAME, constants.DirectionEnum.DOWN, moveDestination);
+      paddle.moveDirection = constants.DirectionEnum.DOWN;
+      paddle.moveDestination = paddle.moveStart + constants.MOVE_DISTANCE;
+      socket.emit('move', {'id': clientID, 'position': paddle.moveStart, 'direction': paddle.moveDirection});
+      movePaddle(paddle, constants.DISTANCE_PER_FRAME, constants.DirectionEnum.DOWN);
     }
-
-    // If we started moving, send a message to the server.
-    if (moveDirection != constants.DirectionEnum.IDLE)
-      socket.emit('move', {'id': clientID, 'position': moveStart, 'direction': moveDirection});
   }
   // If we are in the process of moving the player's paddle
   else {
-    movePaddle(paddles[clientID], constants.DISTANCE_PER_FRAME, moveDirection, moveDestination);
+    movePaddle(paddle, constants.DISTANCE_PER_FRAME); 
+  }
+
+  if (otherPaddle.moveDirection != constants.DirectionEnum.IDLE) {
+    console.log("Moving other paddle.");
+    movePaddle(otherPaddle, constants.DISTANCE_PER_FRAME);
   }
 }
 

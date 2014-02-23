@@ -83,7 +83,7 @@ function computeServerTick() {
   _.each(actionQueue, function(action) {
     var player = action.id == 0 ? players[0] : players[1];
     if (player.position != action.position) {
-      console.log("WARNING: Client state is inconsistent with server state.");
+      console.log("WARNING: Client state is inconsistent with server state. " + player.position + " " + action.position);
     }
     if (action.direction == constants.DirectionEnum.UP) {
       player.position -= constants.MOVE_DISTANCE;
