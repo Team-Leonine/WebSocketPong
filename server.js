@@ -50,6 +50,8 @@ io.sockets.on('connection', function(socket) {
     socket.emit('assignID', player.id); 
     player.connection = socket;
     if (playerOne.connected && playerTwo.connected) {
+      playerOne.connection.emit("ready");
+      playerTwo.connection.emit("ready");
       runGame();
     }
   }

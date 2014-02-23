@@ -32,6 +32,7 @@ var cursors;
 var socket;
 
 var clientID;
+var ready = false;
 
 function createPaddle(x) {
   paddle = game.add.graphics(x, PADDLE_START_Y);
@@ -47,7 +48,11 @@ function create() {
   socket.on('assignID', function(data) {
     console.log('Assigned ID: ' + data);
     clientID = data;    
-    console.log(clientID);
+  });
+
+  socket.on('ready', function(data) {
+    ready = true;
+    console.log("Two players connected. Game is ready!");
   });
 
   paddles[0] = createPaddle(50);
@@ -110,7 +115,7 @@ function movePaddle(paddle, distance, direction, destination) {
 }
 
 function update() {
-  if (clientID == null)
+  if (!ready)
     return;
 
   console.log(moveDirection);
