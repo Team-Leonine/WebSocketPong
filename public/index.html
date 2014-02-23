@@ -115,6 +115,7 @@ function entityInterpolation(paddle, snapshots) {
   paddle.moveStart = snapshots[0].position;
   paddle.moveDestination = snapshots[1].position;
   snapshots.shift();
+  movePaddle(paddle, constants.DISTANCE_PER_FRAME);
 }
 
 function update() {

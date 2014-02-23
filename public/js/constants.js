@@ -28,4 +28,4 @@ exports.DISTANCE_PER_FRAME = exports.MOVE_DISTANCE / exports.FRAMES_PER_MOVE;
 // The tick rate of the server simulation steps in milliseconds
 exports.SERVER_TICK_RATE = 15;
 // How often the server sends snapshots to the clients in milliseconds
-exports.SERVER_SNAPSHOT_RATE = 100;
+exports.SERVER_SNAPSHOT_RATE = 10;
