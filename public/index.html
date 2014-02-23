@@ -31,6 +31,8 @@ var scoreText;
 var cursors;
 var socket;
 
+var clientID;
+
 function createPaddle(x) {
   paddle = game.add.graphics(x, PADDLE_START_Y);
   paddle.beginFill(0x00ff00, 1);
@@ -40,7 +42,13 @@ function createPaddle(x) {
 }
 
 function create() {   
-  socket = io.connect('http://websocket-pong.nodejitsu.com');
+  socket = io.connect('http://localhost');
+
+  socket.on('assignID', function(data) {
+    console.log('Assigned ID: ' + data);
+    clientID = data;    
+    console.log(clientID);
+  });
 
   paddles[0] = createPaddle(50);
   paddles[1] = createPaddle(game.width - 50 - PADDLE_WIDTH);
@@ -102,27 +110,30 @@ function movePaddle(paddle, distance, direction, destination) {
 }
 
 function update() {
+  if (clientID == null)
+    return;
+
   console.log(moveDirection);
   // If we are not moving the player's paddle
   if (moveDirection == DirectionEnum.IDLE) {
     
-    moveStart = paddles[0].y;
+    moveStart = paddles[clientID].y;
     if (cursors.up.isDown) {
       moveDirection = DirectionEnum.UP;
       moveDestination = moveStart - MOVE_DISTANCE;
-      movePaddle(paddles[0], DISTANCE_PER_FRAME, DirectionEnum.UP, moveDestination);
+      movePaddle(paddles[clientID], DISTANCE_PER_FRAME, DirectionEnum.UP, moveDestination);
     }
     else if(cursors.down.isDown) {
       moveDirection = DirectionEnum.DOWN;
       moveDestination = moveStart + MOVE_DISTANCE;
-      movePaddle(paddles[0], DISTANCE_PER_FRAME, DirectionEnum.DOWN, moveDestination);
+      movePaddle(paddles[clientID], DISTANCE_PER_FRAME, DirectionEnum.DOWN, moveDestination);
     }
 
     //socket.emit('move', {'position': paddles[0].y, 'direction': moveDirection});
   }
   // If we are in the process of moving the player's paddle
   else {
-    movePaddle(paddles[0], DISTANCE_PER_FRAME, moveDirection, moveDestination);
+    movePaddle(paddles[clientID], DISTANCE_PER_FRAME, moveDirection, moveDestination);
   }
 }
 

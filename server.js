@@ -30,9 +30,34 @@ var PADDLE_START_Y = 250;
 
 var paddleY = PADDLE_START_Y;
 
+var playerOne = {};
+playerOne.connected = false;
+var playerTwo = {};
+playerTwo.connected = false;
 
 io.sockets.on('connection', function(socket) {
   console.log("Connection established!");
+  if (playerOne.connected && playerTwo.connected) {
+    console.log('More than two connections received');
+    socket.disconnect();
+    return;
+  }
+  else {
+    var player = playerOne.connected ? playerTwo : playerOne;
+    player.id = playerOne.connected ? 1 : 0;
+    player.connected = true;
+    console.log("Assigned ID: " + player.id);
+    socket.emit('assignID', player.id); 
+    player.connection = socket;
+    if (playerOne.connected && playerTwo.connected) {
+      runGame();
+    }
+  }
+
+  socket.on('disconnect', function() {
+    playerOne.connected = playerOne.socket != null;
+    playerTwo.connected = playerTwo.socket != null;
+  });
 
   socket.on('keyPressed', function(data) {
     console.log("Player pressed " + data + " key.");
@@ -58,4 +83,6 @@ io.sockets.on('connection', function(socket) {
   };
 });
 
-
+function runGame() {
+  
+}
