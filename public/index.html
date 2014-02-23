@@ -43,6 +43,8 @@ function createPaddle(x) {
 }
 
 function create() {   
+  game.stage.disableVisibilityChange = true;
+
   socket = io.connect('http://localhost');
 
   socket.on('assignID', function(data) {
@@ -106,7 +108,6 @@ function movePaddle(paddle, distance) {
 function entityInterpolation(paddle, snapshots) {
   // No movement between snapshots, so don't bother moving the paddle
   if (snapshots[0].position == snapshots[1].position) {
-    paddle.moveDirection = constants.DirectionEnum.IDLE;
     snapshots.shift();
     return;
   }
@@ -115,7 +116,6 @@ function entityInterpolation(paddle, snapshots) {
   paddle.moveStart = snapshots[0].position;
   paddle.moveDestination = snapshots[1].position;
   snapshots.shift();
-  movePaddle(paddle, constants.DISTANCE_PER_FRAME);
 }
 
 function update() {
@@ -147,6 +147,7 @@ function update() {
     movePaddle(paddle, constants.DISTANCE_PER_FRAME); 
   }
 
+  console.log("Update loop: " + otherPaddle.moveDirection);
   if (otherPaddle.moveDirection != constants.DirectionEnum.IDLE) {
     console.log("Moving other paddle.");
     movePaddle(otherPaddle, constants.DISTANCE_PER_FRAME);
